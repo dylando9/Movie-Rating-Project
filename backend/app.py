@@ -3,7 +3,7 @@ from flask_cors import CORS
 from recommender import get_similar_movies
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS so React can access this API
+CORS(app, origins=["http://localhost:5173", "http://localhost:5174"])  # Support React dev ports
 
 @app.route('/recommend', methods=['GET'])
 def recommend():
