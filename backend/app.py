@@ -18,7 +18,17 @@ def recommend():
 def recommend_by_genres():
     data = request.get_json()
     genres = data.get('genres', [])
-    results = get_movies_by_genres(genres)
+    min_score = float(data.get("min_score", 0.0))
+    min_year = int(data.get("min_year", 1900))
+    max_year = int(data.get("max_year", 2025))
+
+    results = get_movies_by_genres(
+        genres=genres,
+        top_n=10,
+        min_score=min_score,
+        min_year=min_year,
+        max_year=max_year,
+    )
     return jsonify({'genres': genres, 'results': results})
 
 if __name__ == '__main__':
