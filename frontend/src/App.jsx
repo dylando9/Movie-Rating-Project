@@ -3,41 +3,67 @@ import axios from "axios";
 
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-async function fetchPoster(title) {
+async function fetchPosterAndDetails(title) {
   try {
     const cleanedTitle = title.replace(/\s*\(\d{4}\)/, "");
-    const response = await axios.get("https://api.themoviedb.org/3/search/movie", {
-      params: {
-        api_key: TMDB_API_KEY,
-        query: cleanedTitle,
-      },
-    });
+    const response = await axios.get(
+      "https://api.themoviedb.org/3/search/movie",
+      {
+        params: {
+          api_key: TMDB_API_KEY,
+          query: cleanedTitle,
+        },
+      }
+    );
 
-    const results = response.data.results;
-    if (results.length > 0 && results[0].poster_path) {
-      return `https://image.tmdb.org/t/p/w200${results[0].poster_path}`;
-    } else {
-      return null;
+    const result = response.data.results[0];
+    if (result) {
+      return {
+        poster: result.poster_path
+          ? `https://image.tmdb.org/t/p/w200${result.poster_path}`
+          : null,
+        rating: result.vote_average,
+        year: result.release_date
+          ? new Date(result.release_date).getFullYear()
+          : null,
+      };
     }
   } catch (err) {
     console.error("TMDb error:", err);
-    return null;
   }
+  return { poster: null, rating: null, year: null };
 }
 
 const availableGenres = [
-  "Action", "Adventure", "Animation", "Children's", "Comedy", "Crime", "Documentary",
-  "Drama", "Fantasy", "Film-Noir", "Horror", "Musical", "Mystery", "Romance",
-  "Sci-Fi", "Thriller", "War", "Western",
+  "Action",
+  "Adventure",
+  "Animation",
+  "Children's",
+  "Comedy",
+  "Crime",
+  "Documentary",
+  "Drama",
+  "Fantasy",
+  "Film-Noir",
+  "Horror",
+  "Musical",
+  "Mystery",
+  "Romance",
+  "Sci-Fi",
+  "Thriller",
+  "War",
+  "Western",
 ];
 
 function App() {
   const [inputTitle, setInputTitle] = useState("");
   const [results, setResults] = useState([]);
   const [selectedGenres, setSelectedGenres] = useState([]);
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem("darkMode") === "true";
-  });
+  const [darkMode, setDarkMode] = useState(
+    () => localStorage.getItem("darkMode") === "true"
+  );
+  const [minYear, setMinYear] = useState(1900);
+  const [maxYear, setMaxYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
     document.body.style.backgroundColor = darkMode ? "#121212" : "#ffffff";
@@ -51,10 +77,10 @@ function App() {
       });
 
       const enriched = await Promise.all(
-        res.data.results.map(async (movie) => ({
-          ...movie,
-          poster: await fetchPoster(movie.title),
-        }))
+        res.data.results.map(async (movie) => {
+          const details = await fetchPosterAndDetails(movie.title);
+          return { ...movie, ...details };
+        })
       );
 
       setResults(enriched);
@@ -65,18 +91,26 @@ function App() {
 
   const handleGenreRecommend = async () => {
     try {
-      const res = await axios.post("http://localhost:5000/recommend_by_genres", {
-        genres: selectedGenres,
-      });
-
-      const enriched = await Promise.all(
-        res.data.results.map(async (movie) => ({
-          ...movie,
-          poster: await fetchPoster(movie.title),
-        }))
+      const res = await axios.post(
+        "http://localhost:5000/recommend_by_genres",
+        {
+          genres: selectedGenres,
+        }
       );
 
-      setResults(enriched);
+      const enriched = await Promise.all(
+        res.data.results.map(async (movie) => {
+          const details = await fetchPosterAndDetails(movie.title);
+          return { ...movie, ...details };
+        })
+      );
+
+      const filtered = enriched.filter(
+        (movie) =>
+          !movie.year || (movie.year >= minYear && movie.year <= maxYear)
+      );
+
+      setResults(filtered);
     } catch (err) {
       console.error("Error:", err);
     }
@@ -155,7 +189,29 @@ function App() {
             {genre}
           </label>
         ))}
-        <br />
+        <div style={{ marginTop: "1rem" }}>
+          <label>
+            📅 Year Range: {minYear} - {maxYear}
+          </label>
+          <div>
+            <input
+              type="number"
+              min="1900"
+              max={new Date().getFullYear()}
+              value={minYear}
+              onChange={(e) => setMinYear(Number(e.target.value))}
+              style={{ width: "80px", marginRight: "1rem" }}
+            />
+            <input
+              type="number"
+              min="1900"
+              max={new Date().getFullYear()}
+              value={maxYear}
+              onChange={(e) => setMaxYear(Number(e.target.value))}
+              style={{ width: "80px" }}
+            />
+          </div>
+        </div>
         <button onClick={handleGenreRecommend} style={styles.button}>
           Recommend by Genre
         </button>
@@ -169,7 +225,7 @@ function App() {
               {movie.poster ? (
                 <a
                   href={`https://www.themoviedb.org/search?query=${encodeURIComponent(
-                    movie.title
+                    movie.title.replace(/\s*\(\d{4}\)/, "")
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -181,12 +237,21 @@ function App() {
                   />
                 </a>
               ) : (
-                <div style={{ height: "300px", background: "#888" }}>No Image</div>
+                <div style={{ height: "300px", background: "#888" }}>
+                  No Image
+                </div>
               )}
-              <p>{movie.title}</p>
-              <p style={{ fontSize: "0.9rem", color: "gray" }}>
-                {(movie.score * 100).toFixed(1)}%
+              <p>
+                {movie.title}
+                {!movie.title.includes(`(${movie.year})`) && movie.year
+                  ? ` (${movie.year})`
+                  : ""}
               </p>
+              {movie.rating && (
+                <p style={{ fontSize: "0.9rem", color: "gold" }}>
+                  ⭐ {movie.rating.toFixed(1)} / 10
+                </p>
+              )}
             </div>
           ))}
         </div>

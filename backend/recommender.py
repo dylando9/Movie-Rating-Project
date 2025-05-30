@@ -19,6 +19,7 @@ movies_df = pd.read_csv(
 )
 
 genre_cols = movies_df.columns[5:]
+movies_df['year'] = movies_df['title'].str.extract(r'\((\d{4})\)').fillna(0).astype(int)
 
 # Create string representations for TF-IDF
 movies_df['genre_str'] = movies_df[genre_cols].apply(
@@ -30,8 +31,6 @@ movies_df['content'] = movies_df['title'].str.lower() + ' ' + movies_df['genre_s
 # TF-IDF vectorization
 vectorizer = TfidfVectorizer(stop_words='english')
 content_matrix = vectorizer.fit_transform(movies_df['content'])
-
-# Compute similarity
 similarity = cosine_similarity(content_matrix)
 
 # TMDb poster fetch
@@ -76,12 +75,16 @@ def get_similar_movies(title, top_n=5):
         })
     return results
 
-def get_movies_by_genres(genres, top_n=5):
+def get_movies_by_genres(genres, top_n=10, min_score=0.0, min_year=1900, max_year=2025):
     if not genres:
         return []
 
     mask = movies_df[genres].any(axis=1)
     filtered = movies_df[mask]
+    filtered = filtered[(filtered['year'] >= min_year) & (filtered['year'] <= max_year)]
+
+    if filtered.empty:
+        return []
 
     top_movies = filtered.sample(n=min(top_n, len(filtered)), random_state=42)
 
@@ -90,8 +93,9 @@ def get_movies_by_genres(genres, top_n=5):
         poster, tmdb_id = fetch_tmdb_data(row["title"])
         results.append({
             "title": row["title"],
-            "score": 1.0,
+            "score": 1.0,  # Placeholder score
             "poster": poster,
             "tmdb_id": tmdb_id
         })
-    return results
+
+    return [r for r in results if r['score'] >= min_score]
