@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from recommender import get_similar_movies, get_movies_by_genres
+from recommender import get_similar_movies, get_movies_by_genres, get_movies_by_cluster
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173", "http://localhost:5174"])
@@ -30,6 +30,16 @@ def recommend_by_genres():
         max_year=max_year,
     )
     return jsonify({'genres': genres, 'results': results})
+
+@app.route('/recommend_by_cluster', methods=['GET'])
+def recommend_by_cluster():
+    try:
+        cluster = int(request.args.get("cluster"))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid or missing cluster parameter"}), 400
+
+    results = get_movies_by_cluster(cluster)
+    return jsonify({'cluster': cluster, 'results': results})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.cluster import KMeans
 import requests
 import os
 
@@ -21,19 +22,40 @@ movies_df = pd.read_csv(
 genre_cols = movies_df.columns[5:]
 movies_df['year'] = movies_df['title'].str.extract(r'\((\d{4})\)').fillna(0).astype(int)
 
-# Create string representations for TF-IDF
-movies_df['genre_str'] = movies_df[genre_cols].apply(
+# Create overview (simulate)
+movies_df['overview'] = movies_df[genre_cols].apply(
     lambda row: ' '.join([genre for genre, present in zip(genre_cols, row) if present == 1]),
     axis=1
 )
-movies_df['content'] = movies_df['title'].str.lower() + ' ' + movies_df['genre_str'].str.lower()
 
-# TF-IDF vectorization
+movies_df['genre_str'] = movies_df[genre_cols].apply(
+    lambda row: ' '.join([genre for genre, val in zip(genre_cols, row) if val == 1]),
+    axis=1
+)
+movies_df['content'] = (
+    movies_df['title'].str.lower() + ' ' +
+    movies_df['genre_str'].str.lower() + ' ' +
+    movies_df['overview'].str.lower()
+)
+
+# TF-IDF + clustering
 vectorizer = TfidfVectorizer(stop_words='english')
 content_matrix = vectorizer.fit_transform(movies_df['content'])
 similarity = cosine_similarity(content_matrix)
 
-# TMDb poster fetch
+kmeans = KMeans(n_clusters=6, random_state=42, n_init=10)
+movies_df['cluster'] = kmeans.fit_predict(content_matrix)
+
+cluster_labels = {
+    0: "🎭 Classic Comedies & Musicals",
+    1: "🚀 Sci-Fi & Fantasy Adventures",
+    2: "🔪 Thrillers & Crime Dramas",
+    3: "🎬 Romantic Dramas & Tearjerkers",
+    4: "👻 Horror & Mystery",
+    5: "🎞️ Documentaries & Film-Noir"
+}
+
+# TMDB API
 TMDB_API_KEY = os.getenv("VITE_TMDB_API_KEY")
 
 def fetch_tmdb_data(title):
@@ -52,7 +74,7 @@ def fetch_tmdb_data(title):
         pass
     return None, None
 
-# -------- Main Recommendation Functions -------- #
+# ----- Recommendation Functions ----- #
 
 def get_similar_movies(title, top_n=5):
     try:
@@ -93,9 +115,29 @@ def get_movies_by_genres(genres, top_n=10, min_score=0.0, min_year=1900, max_yea
         poster, tmdb_id = fetch_tmdb_data(row["title"])
         results.append({
             "title": row["title"],
-            "score": 1.0,  # Placeholder score
+            "score": 1.0,
             "poster": poster,
             "tmdb_id": tmdb_id
         })
 
     return [r for r in results if r['score'] >= min_score]
+
+def get_movies_by_cluster(cluster_id, top_n=10):
+    cluster_movies = movies_df[movies_df['cluster'] == cluster_id]
+    if cluster_movies.empty:
+        return []
+
+    top_movies = cluster_movies.sample(n=min(top_n, len(cluster_movies)), random_state=42)
+
+    results = []
+    for _, row in top_movies.iterrows():
+        poster, tmdb_id = fetch_tmdb_data(row["title"])
+        results.append({
+            "title": row["title"],
+            "score": 1.0,
+            "poster": poster,
+            "tmdb_id": tmdb_id,
+            "cluster_label": cluster_labels.get(cluster_id, f"Cluster {cluster_id}")
+        })
+
+    return results

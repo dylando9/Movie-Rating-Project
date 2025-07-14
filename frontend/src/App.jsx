@@ -55,6 +55,15 @@ const availableGenres = [
   "Western",
 ];
 
+const clusterLabels = {
+  0: "🎭 Classic Comedies & Musicals",
+  1: "🚀 Sci-Fi & Fantasy Adventures",
+  2: "🔪 Thrillers & Crime Dramas",
+  3: "🎬 Romantic Dramas & Tearjerkers",
+  4: "👻 Horror & Mystery",
+  5: "🎞️ Documentaries & Film-Noir",
+};
+
 function App() {
   const [inputTitle, setInputTitle] = useState("");
   const [results, setResults] = useState([]);
@@ -64,6 +73,7 @@ function App() {
   );
   const [minYear, setMinYear] = useState(1900);
   const [maxYear, setMaxYear] = useState(new Date().getFullYear());
+  const [selectedCluster, setSelectedCluster] = useState("");
 
   useEffect(() => {
     document.body.style.backgroundColor = darkMode ? "#121212" : "#ffffff";
@@ -95,6 +105,8 @@ function App() {
         "http://localhost:5000/recommend_by_genres",
         {
           genres: selectedGenres,
+          min_year: minYear,
+          max_year: maxYear,
         }
       );
 
@@ -105,12 +117,30 @@ function App() {
         })
       );
 
-      const filtered = enriched.filter(
-        (movie) =>
-          !movie.year || (movie.year >= minYear && movie.year <= maxYear)
+      setResults(enriched);
+    } catch (err) {
+      console.error("Error:", err);
+    }
+  };
+
+  const handleClusterRecommend = async () => {
+    if (selectedCluster === "") return;
+    try {
+      const res = await axios.get(
+        "http://localhost:5000/recommend_by_cluster",
+        {
+          params: { cluster_id: selectedCluster },
+        }
       );
 
-      setResults(filtered);
+      const enriched = await Promise.all(
+        res.data.results.map(async (movie) => {
+          const details = await fetchPosterAndDetails(movie.title);
+          return { ...movie, ...details };
+        })
+      );
+
+      setResults(enriched);
     } catch (err) {
       console.error("Error:", err);
     }
@@ -159,6 +189,10 @@ function App() {
   return (
     <div style={styles.container}>
       <h1>🎬 Movie Recommender</h1>
+      <p style={{ fontStyle: "italic", marginBottom: "1rem" }}>
+        Get movie recommendations by typing a title, selecting genres, or
+        choosing a cluster. Powered by TMDb and MovieLens data.
+      </p>
 
       <button onClick={toggleTheme} style={styles.button}>
         Toggle {darkMode ? "Light" : "Dark"} Mode
@@ -218,6 +252,25 @@ function App() {
       </div>
 
       <div style={{ marginTop: "2rem" }}>
+        <h2>Or Choose a Cluster:</h2>
+        <select
+          value={selectedCluster}
+          onChange={(e) => setSelectedCluster(e.target.value)}
+          style={{ ...styles.input, width: "200px" }}
+        >
+          <option value="">Select Cluster</option>
+          {Object.entries(clusterLabels).map(([id, label]) => (
+            <option key={id} value={id}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <button onClick={handleClusterRecommend} style={styles.button}>
+          Recommend by Cluster
+        </button>
+      </div>
+
+      <div style={{ marginTop: "2rem" }}>
         <h2>Results:</h2>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
           {results.map((movie, i) => (
@@ -252,8 +305,63 @@ function App() {
                   ⭐ {movie.rating.toFixed(1)} / 10
                 </p>
               )}
+              {movie.cluster_label && (
+                <p style={{ fontSize: "0.8rem", fontStyle: "italic" }}>
+                  {movie.cluster_label}
+                </p>
+              )}
             </div>
           ))}
+          <div
+            style={{
+              marginTop: "3rem",
+              fontSize: "0.9rem",
+              color: darkMode ? "#aaa" : "#555",
+            }}
+          >
+            <hr style={{ marginBottom: "1rem" }} />
+
+            <h3>About This Project</h3>
+            <p>
+              This app was built using React (Vite), Flask, and ML techniques
+              like TF-IDF and KMeans to recommend movies by title, genre, and
+              cluster.
+            </p>
+            <p>
+              🎞️ Movie data:{" "}
+              <a
+                href="https://grouplens.org/datasets/movielens/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                MovieLens 100K
+              </a>
+              <br />
+              🎨 Poster images & ratings:{" "}
+              <a
+                href="https://www.themoviedb.org/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                TMDb API
+              </a>{" "}
+              (not endorsed or certified by TMDb)
+            </p>
+            <p>
+              Built by <strong>Dylan Do</strong> •{" "}
+              <a
+                href="https://github.com/dylando9/Movie-Rating-Project"
+                target="_blank"
+                rel="noreferrer"
+              >
+                GitHub Repo
+              </a>
+            </p>
+
+            <p style={{ marginTop: "1rem" }}>
+              © {new Date().getFullYear()} Movie Recommender
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -1,69 +1,75 @@
-# 🎬 Movie-Rating-Recommender-App
+# 🎬 Movie Recommender App
 
-## Interactive Movie Recommendation System
-
-This is an interactive, user-friendly movie recommendation web application. It allows users to search for movies they like and get personalized recommendations using **content-based filtering** powered by the MovieLens 100k dataset and enhanced with TMDb metadata.
+A smart, interactive web app for movie recommendations using **content-based filtering**, **clustering**, and genre-based search. Built with Flask (backend) and React (frontend), it integrates TMDb for posters and MovieLens for ratings and metadata.
 
 ---
 
-## ✨ Features
+## Live Demo
 
-- 🔍 Recommend similar movies based on a user-input movie title
-- 🧠 Cold-start onboarding via selectable **genres** for new users
-- 🧩 Uses **TF-IDF vectorization** for content similarity across titles and genres
-- 🖼️ Automatically fetches **poster images** using the [TMDb API](https://www.themoviedb.org/)
-- 🌙 Toggle between **dark mode** and light mode
-- 🔗 Movie posters are **clickable**, linking to the movie's TMDb search result
+[🔗 GitHub Repository](https://github.com/dylando9/Movie-Rating-Project)
+
+> *(: Include deployed Railway link here when ready)*
 
 ---
 
-## 📦 Dataset(s)
+## Features
 
-- **MovieLens 100k**: [Download here](https://grouplens.org/datasets/movielens/100k/)
-- **TMDb Metadata** *(Optional)*: Requires a free API key via [TMDb signup](https://www.themoviedb.org/)
+- 🔍 Recommend similar movies based on a user-input title
+- 🎯 Filter by **genre** and **release year range**
+- 🧩 Choose movie clusters like:
+  - 🎭 *Classic Comedies & Musicals*
+  - 🚀 *Sci-Fi & Fantasy Adventures*
+  - 🔪 *Thrillers & Crime Dramas*
+- 🖼️ Fetch poster images and ratings from TMDb
+- 🌓 Toggle between dark mode and light mode
+- 🎞️ Posters are clickable → open in TMDb for more info
+- 📅 Input year range for filtered recommendations
 
 ---
 
-## 🛠️ Tools + Libraries
+## Recommendation Engine
 
-### Backend (Python)
+- **TF-IDF Vectorization** on movie titles and genres
+- **Cosine Similarity** to rank similar titles
+- **KMeans Clustering** to group movies by content and theme
+- **Cold-start genre selection** for new users without history
 
-- `pandas`, `scikit-learn` — TF-IDF + cosine similarity
-- `Flask` — API server
-- `requests` — TMDb API integration
+---
+
+## Tech Stack
+
+### Backend (Flask + Python)
+- `pandas`, `scikit-learn`, `Flask`, `requests`
 
 ### Frontend (React + Vite)
-
-- `axios` — HTTP client for API communication
-- `.env` — secure API key handling
-- REST API — poster search from TMDb
-
----
-
-## How It Works
-
-1. **Title Input**: Type a movie name → backend returns most similar titles
-2. **Genre Selection**: Pick one or more genres → backend returns top matches
-3. **Poster Retrieval**: Frontend fetches poster images from TMDb API
-4. **Dark Mode Toggle**: Frontend button switches theme (light ↔ dark)
-5. **Clickable Posters**: Clicking a poster opens TMDb search for the movie
+- `React`, `axios`
+- Environment-based API key handling via `.env`
+- Responsive styling with CSS and inline dark mode logic
 
 ---
 
-## Citations
+## Datasets & APIs
 
-> F. Maxwell Harper and Joseph A. Konstan. 2015. The MovieLens Datasets: History and Context.
-> ACM Transactions on Interactive Intelligent Systems (TIIS) 5, 4, Article 19 (December 2015), 19 pages.
-> DOI: [https://doi.org/10.1145/2827872](https://doi.org/10.1145/2827872)
+- 🎞️ **[MovieLens 100K](https://grouplens.org/datasets/movielens/100k/)** — User ratings, genres, movie titles
+- 🖼️ **[TMDb API](https://www.themoviedb.org/)** — Poster images, metadata (requires free API key)
 
 ---
 
-## Local Development
+## Local Setup
 
 ```bash
-# Backend Setup
+# 1. Clone the repo
+git clone https://github.com/dylando9/Movie-Rating-Project.git
+cd Movie-Rating-Project
+
+# 2. Backend setup
 cd backend
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python app.py
+
+# 3. Frontend setup
+cd ../frontend
+npm install
+npm run dev
