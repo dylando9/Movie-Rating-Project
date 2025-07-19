@@ -6,9 +6,8 @@ A smart, interactive web app for movie recommendations using **content-based fil
 
 ## Live Demo
 
-[🔗 GitHub Repository](https://github.com/dylando9/Movie-Rating-Project)
+[🔗 Link to Website here](https://smart-movie-search.fly.dev/)
 
-> * (Link to fly.io project here when ready)*
 
 ---
 

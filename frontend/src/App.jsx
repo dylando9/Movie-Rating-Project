@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_BASE;
 
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
@@ -82,7 +83,7 @@ function App() {
 
   const handleTitleSearch = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/recommend", {
+      const res = await axios.get(`${BASE_URL}/recommend`, {
         params: { title: inputTitle },
       });
 
@@ -101,14 +102,11 @@ function App() {
 
   const handleGenreRecommend = async () => {
     try {
-      const res = await axios.post(
-        "http://localhost:5000/recommend_by_genres",
-        {
-          genres: selectedGenres,
-          min_year: minYear,
-          max_year: maxYear,
-        }
-      );
+      const res = await axios.post(`${BASE_URL}/recommend_by_genres`, {
+        genres: selectedGenres,
+        min_year: minYear,
+        max_year: maxYear,
+      });
 
       const enriched = await Promise.all(
         res.data.results.map(async (movie) => {
@@ -126,12 +124,9 @@ function App() {
   const handleClusterRecommend = async () => {
     if (selectedCluster === "") return;
     try {
-      const res = await axios.get(
-        "http://localhost:5000/recommend_by_cluster",
-        {
-          params: { cluster_id: selectedCluster },
-        }
-      );
+      const res = await axios.get(`${BASE_URL}/recommend_by_cluster`, {
+        params: { cluster: selectedCluster },
+      });
 
       const enriched = await Promise.all(
         res.data.results.map(async (movie) => {

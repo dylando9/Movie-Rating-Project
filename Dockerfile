@@ -1,23 +1,18 @@
-# Python base image
-FROM python:3.10
+# Use Python image
+FROM python:3.10-slim
 
-# Set working directory inside container
+# Set working directory
 WORKDIR /app
 
-# Install Python dependencies
+# Copy requirements and install them
 COPY backend/requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend code (including app.py and recommender.py)
-COPY backend/ ./
-
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV FLASK_ENV=production
-ENV PORT=5000
+# Copy your backend code
+COPY backend .
 
 # Expose port
 EXPOSE 5000
 
-# Run app.py using gunicorn
+# Tell Gunicorn to run the Flask app
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
