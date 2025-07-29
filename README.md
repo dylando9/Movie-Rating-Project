@@ -21,7 +21,7 @@ A smart, interactive web app for movie recommendations using **content-based fil
   - 🔪 *Thrillers & Crime Dramas*
 - 🖼️ Fetch poster images and ratings from TMDb
 - 🌓 Toggle between dark mode and light mode
-- 🎞️ Posters are clickable → open in TMDb for more info
+- 🎞️ Posters are clickable → open to TMDb for more info
 - 📅 Input year range for filtered recommendations
 
 ---
@@ -41,32 +41,13 @@ A smart, interactive web app for movie recommendations using **content-based fil
 ### Frontend (React + Vite)
 - `React`, `axios`
 - Environment-based API key handling via `.env`
-- Responsive styling with CSS and inline dark mode logic
+- Responsive styling with CSS and inline dark mode toggle
 
 ---
 
 ## Datasets & APIs
 
-- 🎞️ **[MovieLens 100K](https://grouplens.org/datasets/movielens/100k/)** — User ratings, genres, movie titles
-- 🖼️ **[TMDb API](https://www.themoviedb.org/)** — Poster images, metadata (requires free API key)
+- **[MovieLens 100K](https://grouplens.org/datasets/movielens/100k/)** — User ratings, genres, movie titles
+- **[TMDb API](https://www.themoviedb.org/)** — Poster images, metadata (requires API key)
 
 ---
-
-## Local Setup
-
-```bash
-# 1. Clone the repo
-git clone https://github.com/dylando9/Movie-Rating-Project.git
-cd Movie-Rating-Project
-
-# 2. Backend setup
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python app.py
-
-# 3. Frontend setup
-cd ../frontend
-npm install
-npm run dev
