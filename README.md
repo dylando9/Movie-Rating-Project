@@ -28,8 +28,6 @@ A smart, interactive web app for movie recommendations using **content-based fil
 
 ## Recommendation Engine
 
-- **TF-IDF Vectorization** on movie titles and genres
-- **Cosine Similarity** to rank similar titles
 - **KMeans Clustering** to group movies by content and theme
 - **Cold-start genre selection** for new users without history
 
