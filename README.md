@@ -4,13 +4,6 @@ A smart, interactive web app for movie recommendations using **content-based fil
 
 ---
 
-## Live Demo
-
-[🔗 Link to Website here](https://smart-movie-search.fly.dev/)
-
-
----
-
 ## Features
 
 - 🔍 Recommend similar movies based on a user-input title
@@ -49,5 +42,29 @@ A smart, interactive web app for movie recommendations using **content-based fil
 
 - **[MovieLens 100K](https://grouplens.org/datasets/movielens/100k/)** — User ratings, genres, movie titles
 - **[TMDb API](https://www.themoviedb.org/)** — Poster images, metadata (requires API key)
+
+---
+
+## Local Setup
+
+1. Clone the repo and navigate into it
+2. Backend setup
+```
+- cd backend
+- python -m venv venv
+- source venv/bin/activate    # or .\venv\Scripts\activate on Windows
+- pip install -r requirements.txt
+- python app.py
+```
+3. Frontend Setup (in a new terminal tab):
+```
+- cd frontend
+- npm install
+- npm run dev
+```
+4. Access the app locally
+5. Add your TMDb API key:
+    - Create a .env file in the frontend/ directory:
+      - VITE_TMDB_API_KEY=your_key_here
 
 ---
